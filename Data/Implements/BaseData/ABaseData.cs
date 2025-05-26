@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static Dapper.SqlMapper;
 
-namespace Data.Implements.BaseDate
+namespace Data.Implements.BaseData
 {
 
     /// <summary>
