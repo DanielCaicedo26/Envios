@@ -1,4 +1,6 @@
-﻿namespace Entity.Model.Base
+﻿using Entity.Model.Base;
+
+namespace Entity.Model
 {
     public class ModuleForm : BaseEntity
     {

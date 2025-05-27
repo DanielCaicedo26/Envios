@@ -1,4 +1,4 @@
-﻿using Entity.Model.Base;
+﻿using Entity.Model;
 
 namespace Data.Interfaces
 {

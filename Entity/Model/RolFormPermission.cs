@@ -1,6 +1,7 @@
-﻿using System.Data;
+﻿using Entity.Model.Base;
+using System.Data;
 
-namespace Entity.Model.Base
+namespace Entity.Model
 {
     public class RolFormPermission : BaseEntity
     {

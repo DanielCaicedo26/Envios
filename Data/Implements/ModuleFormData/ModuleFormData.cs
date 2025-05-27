@@ -1,7 +1,7 @@
 ﻿using Data.Implements.BaseData;
 using Data.Interfaces;
 using Entity.Context;
-using Entity.Model.Base;
+using Entity.Model;
 using Microsoft.EntityFrameworkCore;
 
 namespace Data.Implements.ModuleFormData

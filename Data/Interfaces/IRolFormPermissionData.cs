@@ -1,5 +1,5 @@
 ﻿using Data.Interfaces;
-using Entity.Model.Base;
+using Entity.Model;
 
 public interface IRolFormPermissionData : IBaseModelData<RolFormPermission>
 {

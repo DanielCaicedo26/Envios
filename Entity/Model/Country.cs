@@ -1,21 +1,19 @@
-﻿using System;
+﻿using Entity.Model.Base;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Entity.Model.Base
+namespace Entity.Model
 {
-    public class City : BaseEntity
+    public class Country : BaseEntity
     {
         public string Name { get; set; }
-        public string Code { get; set; }
-        public string PostalCode { get; set; }
-        public int DepartmentId { get; set; }
+        public string PhoneCode { get; set; }
 
         // Navigation properties
-        public virtual Department? Department { get; set; }
-        public virtual ICollection<Neighborhood>? Neighborhoods { get; set; }
+        public virtual ICollection<Department>? Departments { get; set; }
         public virtual ICollection<Person>? People { get; set; }
         public virtual ICollection<Client>? Clients { get; set; }
         public virtual ICollection<Provider>? Providers { get; set; }
