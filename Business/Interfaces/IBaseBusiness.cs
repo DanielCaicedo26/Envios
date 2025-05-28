@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Data.Implements.BaseDate;
+using Data.Implements.BaseData;
 using Data.Interfaces;
 using Entity.Dtos.Base;
 using Entity.Model.Base;

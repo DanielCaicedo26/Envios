@@ -32,8 +32,7 @@ builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddValidatorsFromAssemblyContaining(typeof(Program));
-builder.Services.AddSingleton<IValidatorFactory>(sp =>
-    new ServiceProviderValidatorFactory(sp));
+builder.Services.AddSingleton<IValidatorFactory, ServiceProviderValidatorFactory>();
 
 // Add Swagger documentation using extension method
 builder.Services.AddSwaggerDocumentation();
@@ -107,7 +106,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-var origenesPermitidos = builder.Configuration.GetValue<string>("origenesPermitidos")!.Split(";");
+var origenesPermitidos = builder.Configuration["origenesPermitidos"]!.Split(";");
 {
     builder.Services.AddCors(options =>
     {
