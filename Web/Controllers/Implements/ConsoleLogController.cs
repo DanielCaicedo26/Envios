@@ -10,12 +10,12 @@ namespace Web.Controllers.Implements
     [Authorize]
     public class ConsoleLogController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly AuditDbContext _dbcontext;
         private readonly ILogger<ConsoleLogController> _logger;
 
-        public ConsoleLogController(ApplicationDbContext context, ILogger<ConsoleLogController> logger)
+        public ConsoleLogController(AuditDbContext dbcontext, ILogger<ConsoleLogController> logger)
         {
-            _context = context;
+            _dbcontext = dbcontext;
             _logger = logger;
         }
 
@@ -30,7 +30,7 @@ namespace Web.Controllers.Implements
         {
             try
             {
-                var query = _context.ConsoleLogs.AsQueryable();
+                var query = _dbcontext.ConsoleLogs.AsQueryable();
 
                 if (!string.IsNullOrEmpty(tableName))
                     query = query.Where(l => l.TableName.Contains(tableName));
