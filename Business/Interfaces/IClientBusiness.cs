@@ -18,3 +18,4 @@ namespace Business.Interfaces
         Task<List<ClientDto>> GetByLocationAsync(int countryId, int? departmentId = null, int? cityId = null);
         Task<List<ClientDto>> GetByCreditLimitRangeAsync(decimal minLimit, decimal maxLimit);
     }
+}

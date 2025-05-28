@@ -46,6 +46,11 @@ namespace Entity.Context
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<RolFormPermission> RolFormPermissions { get; set; }
 
+
+        // Add this DbSet property to your AuditDbContext class
+        public DbSet<ConsoleLog> ConsoleLogs { get; set; }
+
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // ========================= CONFIGURACIÓN DE RELACIONES =========================
@@ -258,6 +263,65 @@ namespace Entity.Context
                 .WithMany(p => p.RolPermissions)
                 .HasForeignKey(rfp => rfp.PermissionId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // ========================= CONFIGURACIÓN DE CONSOLE LOG =========================
+
+            // Configuración específica para ConsoleLog
+            modelBuilder.Entity<ConsoleLog>(entity =>
+            {
+                // Configurar tabla
+                entity.ToTable("ConsoleLogs");
+
+                // Configurar propiedades
+                entity.Property(e => e.TableName)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.RecordId)
+                    .IsRequired();
+
+                entity.Property(e => e.OperationType)
+                    .IsRequired()
+                    .HasMaxLength(10);
+
+                entity.Property(e => e.OldValues)
+                    .HasColumnType("nvarchar(max)");
+
+                entity.Property(e => e.NewValues)
+                    .HasColumnType("nvarchar(max)");
+
+                entity.Property(e => e.UserName)
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.IpAddress)
+                    .HasMaxLength(45);
+
+                entity.Property(e => e.UserAgent)
+                    .HasMaxLength(500);
+
+                entity.Property(e => e.Timestamp)
+                    .IsRequired()
+                    .HasDefaultValueSql("GETUTCDATE()");
+
+                entity.Property(e => e.AdditionalInfo)
+                    .HasColumnType("nvarchar(max)");
+
+                // Configurar índices para mejorar las consultas
+                entity.HasIndex(e => e.TableName)
+                    .HasDatabaseName("IX_ConsoleLogs_TableName");
+
+                entity.HasIndex(e => e.RecordId)
+                    .HasDatabaseName("IX_ConsoleLogs_RecordId");
+
+                entity.HasIndex(e => e.Timestamp)
+                    .HasDatabaseName("IX_ConsoleLogs_Timestamp");
+
+                entity.HasIndex(e => e.UserId)
+                    .HasDatabaseName("IX_ConsoleLogs_UserId");
+
+                entity.HasIndex(e => new { e.TableName, e.RecordId })
+                    .HasDatabaseName("IX_ConsoleLogs_Table_Record");
+            });
 
             // ========================= CONFIGURACIÓN DE PROPIEDADES BASE =========================
 

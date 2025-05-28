@@ -14,24 +14,22 @@ using Utilities.Interfaces;
 using Utilities.Helpers;
 using Utilities.Mail;
 using Utilities.Jwt;
+using Utilities.Services; // ← AGREGADO PARA AUDITORÍA
 using Web.ServiceExtension;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Business.Services;
-using Data.Implements.BaseDate;
 using Data.Implements.BaseData;
-
-
-
-
-
-
+using Audit.EntityFramework;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add controllers
 builder.Services.AddControllers();
+
+// Add HttpContextAccessor para auditoría ← AGREGADO
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddValidatorsFromAssemblyContaining(typeof(Program));
 builder.Services.AddSingleton<IValidatorFactory>(sp =>
@@ -40,9 +38,13 @@ builder.Services.AddSingleton<IValidatorFactory>(sp =>
 // Add Swagger documentation using extension method
 builder.Services.AddSwaggerDocumentation();
 
-// Add DbContext
+// Add DbContext principal
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Add DbContext de auditoría con conexión separada ← AGREGADO
+builder.Services.AddDbContext<Entity.Context.AuditDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("AuditConnection")));
 
 // Configure email service
 builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
@@ -50,13 +52,13 @@ builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpS
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 
-
 // Configure JWT
 builder.Services.AddScoped<IJwtGenerator, GenerateTokenJwt>();
 
+// Register audit service ← AGREGADO
+builder.Services.AddScoped<IAuditService, AuditService>();
+
 // Register generic repositories and business logic
-
-
 // Existing code remains unchanged
 builder.Services.AddScoped(typeof(IBaseModelData<>), typeof(BaseModelData<>));
 
@@ -157,27 +159,32 @@ var origenesPermitidos = builder.Configuration.GetValue<string>("origenesPermiti
     app.UseAuthorization();
 
     app.MapControllers();
-    // Inicializar base de datos y aplicar migraciones
+
+    // Inicializar bases de datos y aplicar migraciones ← ACTUALIZADO
     using (var scope = app.Services.CreateScope())
     {
         var services = scope.ServiceProvider;
         try
         {
+            // Migrar base de datos principal
             var dbContext = services.GetRequiredService<ApplicationDbContext>();
             var logger = services.GetRequiredService<ILogger<Program>>();
 
             // Aplicar migraciones (esto crea la BD si no existe y aplica todas las migraciones)
             dbContext.Database.Migrate();
-            logger.LogInformation("Base de datos verificada y migraciones aplicadas exitosamente.");
+            logger.LogInformation("Base de datos principal verificada y migraciones aplicadas exitosamente.");
+
+            // Migrar base de datos de auditoría ← AGREGADO
+            var auditContext = services.GetRequiredService<Entity.Context.AuditDbContext>();
+            auditContext.Database.Migrate();
+            logger.LogInformation("Base de datos de auditoría verificada y migraciones aplicadas exitosamente.");
         }
         catch (Exception ex)
         {
             var logger = services.GetRequiredService<ILogger<Program>>();
-            logger.LogError(ex, "Ocurrió un error durante la migración de la base de datos.");
+            logger.LogError(ex, "Ocurrió un error durante la migración de las bases de datos.");
         }
     }
 
     app.Run();
-
-
 }
