@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Entity.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250528210038_InitialCreate")]
+    [Migration("20250528223919_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -230,90 +230,6 @@ namespace Entity.Migrations
                         .HasFilter("[Status] = 1");
 
                     b.ToTable("Clients");
-                });
-
-            modelBuilder.Entity("Entity.Model.ConsoleLog", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AdditionalInfo")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DeleteAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("IpAddress")
-                        .HasMaxLength(45)
-                        .HasColumnType("nvarchar(45)");
-
-                    b.Property<string>("NewValues")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("OldValues")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("OperationType")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
-                    b.Property<int>("RecordId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("Status")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
-
-                    b.Property<string>("TableName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("Timestamp")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UserAgent")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserName")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RecordId")
-                        .HasDatabaseName("IX_ConsoleLogs_RecordId");
-
-                    b.HasIndex("TableName")
-                        .HasDatabaseName("IX_ConsoleLogs_TableName");
-
-                    b.HasIndex("Timestamp")
-                        .HasDatabaseName("IX_ConsoleLogs_Timestamp");
-
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("IX_ConsoleLogs_UserId");
-
-                    b.HasIndex("TableName", "RecordId")
-                        .HasDatabaseName("IX_ConsoleLogs_Table_Record");
-
-                    b.ToTable("ConsoleLogs", (string)null);
                 });
 
             modelBuilder.Entity("Entity.Model.Country", b =>
