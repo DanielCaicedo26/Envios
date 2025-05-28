@@ -14,21 +14,19 @@ using Utilities.Interfaces;
 using Utilities.Helpers;
 using Utilities.Mail;
 using Utilities.Jwt;
-using Utilities.Services; // ← AGREGADO PARA AUDITORÍA
+using Utilities.Services;
 using Web.ServiceExtension;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Business.Services;
 using Data.Implements.BaseData;
-using Audit.EntityFramework;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add controllers
 builder.Services.AddControllers();
 
-// Add HttpContextAccessor para auditoría ← AGREGADO
+// Add HttpContextAccessor para auditoría
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddValidatorsFromAssemblyContaining(typeof(Program));
@@ -41,8 +39,8 @@ builder.Services.AddSwaggerDocumentation();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Add DbContext de auditoría con conexión separada ← AGREGADO
-builder.Services.AddDbContext<Entity.Context.AuditDbContext>(options =>
+// Add DbContext de auditoría con conexión separada - SOLO para ConsoleLog
+builder.Services.AddDbContext<AuditDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("AuditConnection")));
 
 // Configure email service
@@ -54,13 +52,11 @@ builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSet
 // Configure JWT
 builder.Services.AddScoped<IJwtGenerator, GenerateTokenJwt>();
 
-// Register audit service ← AGREGADO
+// Register audit service
 builder.Services.AddScoped<IAuditService, AuditService>();
 
 // Register generic repositories and business logic
-// Existing code remains unchanged
 builder.Services.AddScoped(typeof(IBaseModelData<>), typeof(BaseModelData<>));
-
 builder.Services.AddScoped(typeof(IBaseBusiness<,>), typeof(BaseBusiness<,>));
 
 // Register User-specific services
@@ -128,7 +124,7 @@ var origenesPermitidos = builder.Configuration["origenesPermitidos"]!.Split(";")
         app.UseSwaggerUI(c =>
         {
             c.SwaggerEndpoint("/swagger/v1/swagger.json", "API Sistema de Gestión v1");
-            c.RoutePrefix = string.Empty; // Para servir Swagger UI en la raíz
+            c.RoutePrefix = string.Empty;
         });
     }
 
@@ -159,29 +155,30 @@ var origenesPermitidos = builder.Configuration["origenesPermitidos"]!.Split(";")
 
     app.MapControllers();
 
-    // Inicializar bases de datos y aplicar migraciones ← ACTUALIZADO
+    // Inicializar bases de datos y aplicar migraciones
     using (var scope = app.Services.CreateScope())
     {
         var services = scope.ServiceProvider;
+        var logger = services.GetRequiredService<ILogger<Program>>();
+
         try
         {
             // Migrar base de datos principal
             var dbContext = services.GetRequiredService<ApplicationDbContext>();
-            var logger = services.GetRequiredService<ILogger<Program>>();
-
-            // Aplicar migraciones (esto crea la BD si no existe y aplica todas las migraciones)
+            logger.LogInformation("Aplicando migraciones a la base de datos principal...");
             dbContext.Database.Migrate();
-            logger.LogInformation("Base de datos principal verificada y migraciones aplicadas exitosamente.");
+            logger.LogInformation("✅ Base de datos principal actualizada exitosamente.");
 
-            // Migrar base de datos de auditoría ← AGREGADO
-            var auditContext = services.GetRequiredService<Entity.Context.AuditDbContext>();
+            // Migrar base de datos de auditoría (SOLO ConsoleLogs)
+            var auditContext = services.GetRequiredService<AuditDbContext>();
+            logger.LogInformation("Aplicando migraciones a la base de datos de auditoría...");
             auditContext.Database.Migrate();
-            logger.LogInformation("Base de datos de auditoría verificada y migraciones aplicadas exitosamente.");
+            logger.LogInformation("✅ Base de datos de auditoría actualizada exitosamente.");
         }
         catch (Exception ex)
         {
-            var logger = services.GetRequiredService<ILogger<Program>>();
-            logger.LogError(ex, "Ocurrió un error durante la migración de las bases de datos.");
+            logger.LogError(ex, "❌ Error durante la migración de las bases de datos.");
+            throw; // Re-lanzar para que la aplicación no inicie con BD inconsistente
         }
     }
 

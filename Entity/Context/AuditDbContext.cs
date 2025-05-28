@@ -1,16 +1,15 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Entity.Model;
-using Entity.Model.Base;
 
 namespace Entity.Context
 {
     /// <summary>
-    /// Contexto de base de datos específico para auditoría y logs
+    /// Contexto de base de datos específico SOLO para auditoría
     /// </summary>
     public class AuditDbContext : DbContext
     {
-        protected readonly IConfiguration _configuration;
+        private readonly IConfiguration _configuration;
 
         public AuditDbContext(DbContextOptions<AuditDbContext> options, IConfiguration configuration)
             : base(options)
@@ -18,17 +17,22 @@ namespace Entity.Context
             _configuration = configuration;
         }
 
-        // ← ESTA LÍNEA ES CRUCIAL - Define el DbSet
+        // SOLO el DbSet de ConsoleLog - Sin otras entidades
         public DbSet<ConsoleLog> ConsoleLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
+            // NO llamar a base.OnModelCreating() para evitar heredar configuraciones
 
-            // Configuración específica para ConsoleLog
+            // Configuración SOLO para ConsoleLog
             modelBuilder.Entity<ConsoleLog>(entity =>
             {
                 entity.ToTable("ConsoleLogs");
+                entity.HasKey(e => e.Id);
+
+                // Configurar propiedades específicas
+                entity.Property(e => e.Id)
+                    .ValueGeneratedOnAdd();
 
                 entity.Property(e => e.TableName)
                     .IsRequired()
@@ -63,6 +67,20 @@ namespace Entity.Context
                 entity.Property(e => e.AdditionalInfo)
                     .HasColumnType("nvarchar(max)");
 
+                // Propiedades de BaseEntity
+                entity.Property(e => e.Status)
+                    .HasDefaultValue(true);
+
+                entity.Property(e => e.CreatedAt)
+                    .IsRequired()
+                    .HasDefaultValueSql("GETUTCDATE()");
+
+                entity.Property(e => e.UpdatedAt)
+                    .IsRequired(false);
+
+                entity.Property(e => e.DeleteAt)
+                    .IsRequired(false);
+
                 // Índices para mejorar las consultas
                 entity.HasIndex(e => e.TableName)
                     .HasDatabaseName("IX_ConsoleLogs_TableName");
@@ -79,28 +97,11 @@ namespace Entity.Context
                 entity.HasIndex(e => new { e.TableName, e.RecordId })
                     .HasDatabaseName("IX_ConsoleLogs_Table_Record");
             });
-
-            // Configuración de propiedades base solo para ConsoleLog
-            modelBuilder.Entity<ConsoleLog>()
-                .Property("CreatedAt")
-                .IsRequired()
-                .HasDefaultValueSql("GETUTCDATE()");
-
-            modelBuilder.Entity<ConsoleLog>()
-                .Property("UpdatedAt")
-                .IsRequired(false);
-
-            modelBuilder.Entity<ConsoleLog>()
-                .Property("DeleteAt")
-                .IsRequired(false);
-
-            modelBuilder.Entity<ConsoleLog>()
-                .Property("Status")
-                .HasDefaultValue(true);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+            // Configuraciones adicionales si son necesarias
             optionsBuilder.EnableSensitiveDataLogging();
         }
     }
